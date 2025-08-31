@@ -1,0 +1,338 @@
+{
+	"info": {
+		"_postman_id": "33a2adcc-88d6-42da-b151-20b1896e3df3",
+		"name": "ServeRest",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31346031"
+	},
+	"item": [
+		{
+			"name": "geração de massa",
+			"item": [
+				{
+					"name": "busca por nova pessoa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// capturar nome, email, senha para gerar nova pessoa/dadosde forma randomica ",
+									"",
+									"",
+									"pm.globals.set(\"userName\", pm.response.json().results[0].name.first )",
+									"pm.globals.set(\"userEmail\", pm.response.json().results[0].email)",
+									"pm.globals.set(\"userPassword\", pm.response.json().results[0].login.password)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://randomuser.me/api/",
+							"protocol": "https",
+							"host": [
+								"randomuser",
+								"me"
+							],
+							"path": [
+								"api",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "usuarios",
+			"item": [
+				{
+					"name": "novo cadastro",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"schema\"); //limpa o valor variavel global",
+									"",
+									"pm.globals.set(\"schema\", {",
+									"  \"$schema\": \"http://json-schema.org/draft-04/schema#\",",
+									"  \"type\": \"object\",",
+									"  \"properties\": {",
+									"    \"message\": {",
+									"      \"type\": \"string\"",
+									"    },",
+									"    \"_id\": {",
+									"      \"type\": \"string\"",
+									"    }",
+									"  },",
+									"  \"required\": [",
+									"    \"message\",",
+									"    \"_id\"",
+									"  ]",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Validar se o status code é 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									" pm.test(\"Validar mensagem do response\", function(){",
+									"    pm.expect(pm.response.json().message).to.be.eql(\"Cadastro realizado com sucesso\")   ",
+									" })",
+									"",
+									" pm.test(\"Capturar id retornado\", function(){",
+									"     pm.globals.set(\"UserId\", pm.response.json()._id)",
+									"",
+									" })",
+									"pm.test(\"Validar schema\", function () {",
+									"        pm.expect(tv4.validate(pm.response.json(), pm.globals.get(\"schema\"))).to.be.true;",
+									"     ",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nome\": \"{{userName}}\",\n    \"email\": \"{{userEmail}}\", \n    \"password\": \"{{userPassword}}\", \n    \"administrador\": \"false\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://serverest.dev/usuarios",
+							"protocol": "https",
+							"host": [
+								"serverest",
+								"dev"
+							],
+							"path": [
+								"usuarios"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "buscar usuario por id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Validar se o status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Validar o id retornado\", function(){",
+									"    pm.expect(pm.response.json()._id).to.be.eql(pm.globals.get(\"UserId\"));",
+									"})",
+									"",
+									"pm.test(\"Validar e-mail\", function(){",
+									"    pm.expect(pm.response.json().email).to.be.eql(pm.globals.get(\"userEmail\"));",
+									"})",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}//usuarios/{{UserId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"",
+								"usuarios",
+								"{{UserId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "atualizar usuario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Validar se o status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Validar mensagem de registro alterado com sucesso\", function(){",
+									"    pm.expect(pm.response.json().message).to.be.eql(\"Registro alterado com sucesso\")});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nome\": \"{{userName}}\",\n    \"email\": \"{{userEmail}}\", \n    \"password\": \"{{userPassword}}\", \n    \"administrador\": \"true\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}//usuarios/{{UserId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"",
+								"usuarios",
+								"{{UserId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "buscar por usuario atualizado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Validar usuario como administrador\", function(){",
+									"    pm.expect(pm.response.json().administrador).to.be.eql(\"true\")",
+									"})",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}//usuarios/{{UserId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"",
+								"usuarios",
+								"{{UserId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deletar usuario da base",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Validar se o status code é 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Validar a mensagem do registro excluido da base com sucesso\", function(){",
+									"    pm.expect(pm.response.json().message).to.be.eql(\"Registro excluído com sucesso\")});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}//usuarios/{{UserId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"",
+								"usuarios",
+								"{{UserId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
